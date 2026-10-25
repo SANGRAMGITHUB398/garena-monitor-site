@@ -1,20 +1,1395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Google Verification Tag -->
-    <meta name="google-site-verification" content="DNJ5NYnqKF52E0xmSalWFBZk-Kj43fNv4HFXgxJJddA" />
-    
-    <title>Black X Panel</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Google Site Verification Tag -->
+  <meta name="google-site-verification" content="DNJ5NYnqKF52E0xmSalWFBZk-Kj43fNv4HFXgxJJddA" />
+
+  <title>Black X Panel</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.92); opacity: 0.75; }
+      70% { transform: scale(1.28); opacity: 0; }
+      100% { transform: scale(1.32); opacity: 0; }
+    }
+    .pulse-ring-active {
+      animation: pulse-ring 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+    @keyframes dash-flow {
+      to { stroke-dashoffset: -40; }
+    }
+    .tunnel-line {
+      stroke-dasharray: 6 6;
+      animation: dash-flow 1.2s linear infinite;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px;">
-    <h1>Black X Panel</h1>
-    <p>This is a personal application used to monitor Gmail for OTP verification codes during Garena account binding.</p>
-    <p>Our app securely connects to your Gmail account to read specific emails and extract the required OTPs automatically.</p>
-    
-    <br>
-    <a href="privacy.html" style="background: #4285F4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Privacy Policy</a>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+
+  <!-- Top Status Banner for Kill Switch / Simulation Notice -->
+  <div id="killSwitchAlert" class="hidden bg-rose-600/95 text-white px-4 py-2.5 text-xs sm:text-sm font-medium flex flex-wrap items-center justify-between gap-2 shadow-lg z-40">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white animate-ping"></span>
+      <span><strong>Kill Switch Engaged:</strong> Unexpected tunnel drop simulated! All external internet traffic is blocked to prevent IP/DNS leaks.</span>
+    </div>
+    <button id="btnReconnectKillSwitch" type="button" class="px-3 py-1 rounded-md bg-white text-rose-700 font-semibold text-xs hover:bg-rose-50 transition">
+      Restore Tunnel Now
+    </button>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-900/75 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div id="brandShieldIcon" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-inner transition-colors duration-300">
+          <span class="text-emerald-400 font-black font-mono text-xl">X</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Black X Panel</h1>
+            <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">OTP Panel</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Automated Gmail OTP Monitor & Account Binding Suite</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800 overflow-x-auto max-w-full" aria-label="Main Navigation">
+        <button type="button" data-tab="dashboard" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 bg-slate-800 text-white shadow">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+        <button type="button" data-tab="servers" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Servers</span>
+          <span id="serverCountBadge" class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-800 text-slate-300 rounded-full">10</span>
+        </button>
+        <button type="button" data-tab="security" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          <span>Security &amp; Policy</span>
+        </button>
+        <button type="button" data-tab="diagnostics" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Leak Test &amp; Logs</span>
+        </button>
+      </nav>
+
+      <!-- App Pill & Privacy Link -->
+      <div class="flex items-center gap-2">
+        <a href="privacy.html" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow">
+          Privacy Policy
+        </a>
+        <div class="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-950 border border-slate-800">
+          <span id="headerStatusDot" class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <span id="headerStatusText" class="text-xs font-semibold text-slate-300">Unprotected</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notice Banner for Verification Reviewers -->
+  <div class="bg-slate-900 border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
+      <div>
+        <p class="text-slate-200 font-medium">
+          <strong>Black X Panel:</strong> This is a personal application used to monitor Gmail for OTP verification codes during Garena account binding.
+        </p>
+        <p class="text-slate-400 mt-0.5">
+          Our app securely connects to your Gmail account to read specific emails and extract the required OTPs automatically.
+        </p>
+      </div>
+      <div class="shrink-0 flex items-center gap-2">
+        <span class="font-mono text-[11px] text-slate-400">Developer: sangramgithub398</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Left Column: Power Button & Connection Controller (5 cols) -->
+        <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden shadow-xl">
+          <div id="ambientGlow" class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-rose-500/10 blur-3xl transition-colors duration-700"></div>
+
+          <div class="flex items-center justify-between z-10">
+            <div>
+              <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Panel Daemon</span>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span id="mainStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                  <span id="mainStatusDot" class="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span id="mainStatusLabel">DISCONNECTED</span>
+                </span>
+                <span id="protocolQuickBadge" class="text-xs font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">WireGuard</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Session Time</span>
+              <p id="sessionTimer" class="text-lg font-mono font-bold text-white tracking-tight">00:00:00</p>
+            </div>
+          </div>
+
+          <div class="my-7 flex flex-col items-center justify-center z-10">
+            <div class="relative flex items-center justify-center">
+              <div id="powerPulseRing" class="hidden absolute w-40 h-40 rounded-full border-2 border-emerald-500/50 pulse-ring-active"></div>
+              <button id="btnConnectToggle" type="button" aria-label="Toggle Connection" class="relative w-36 h-36 rounded-full bg-gradient-to-b from-slate-800 to-slate-900 border-4 border-slate-700 hover:border-slate-500 shadow-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group focus:outline-none">
+                <svg id="powerIcon" class="w-12 h-12 text-rose-400 group-hover:scale-105 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v9m6.364-5.364a9 9 0 11-12.728 0" />
+                </svg>
+                <span id="powerBtnSubtext" class="text-xs font-bold uppercase tracking-wider text-slate-300">Tap to Connect</span>
+              </button>
+            </div>
+            <p id="handshakeStepText" class="mt-3 text-xs font-mono text-slate-400 h-4 text-center">Ready to establish encrypted tunnel</p>
+          </div>
+
+          <div class="space-y-3 z-10">
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div id="currentServerFlag" class="text-2xl shrink-0">🇩🇪</div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <p id="currentServerCity" class="text-sm font-bold text-white truncate">Frankfurt #14</p>
+                    <span id="currentServerPing" class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">38 ms</span>
+                  </div>
+                  <p id="currentServerCountry" class="text-xs text-slate-400 truncate">Germany • Ultra-Fast Node</p>
+                </div>
+              </div>
+              <button id="btnChangeServerQuick" type="button" class="shrink-0 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+                Change
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <button id="btnFastestServer" type="button" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Fastest Node</span>
+              </button>
+              <button id="btnRandomIdentity" type="button" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Rotate Virtual IP</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Global Relay Map (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-xl">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Black X Relay Map</span>
+                  <span id="doubleVpnMapTag" class="hidden text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Multi-Hop Active</span>
+                </h2>
+                <p class="text-xs text-slate-400">Click any global node on the map to switch your target relay server</p>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> Origin (IN)</span>
+                <span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Active Relay</span>
+              </div>
+            </div>
+
+            <div class="relative w-full bg-slate-950 rounded-xl border border-slate-800/90 overflow-hidden aspect-[16/8.5] flex items-center justify-center">
+              <svg id="vpnWorldMap" viewBox="0 0 800 400" class="w-full h-full select-none">
+                <defs>
+                  <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.7" />
+                  </pattern>
+                  <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.7"/>
+                    <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <rect width="800" height="400" fill="url(#mapGrid)" />
+                <g fill="#1e293b" stroke="#334155" stroke-width="1">
+                  <path d="M 75 70 L 185 60 L 235 110 L 210 175 L 155 205 L 115 170 L 70 120 Z" />
+                  <path d="M 195 220 L 255 235 L 280 295 L 245 365 L 205 345 L 190 275 Z" />
+                  <path d="M 355 65 L 455 55 L 480 115 L 435 150 L 365 145 L 345 105 Z" />
+                  <path d="M 365 165 L 455 165 L 490 235 L 455 330 L 395 320 L 360 235 Z" />
+                  <path d="M 485 65 L 675 65 L 715 145 L 665 225 L 555 235 L 495 165 Z" />
+                  <path d="M 615 275 L 710 270 L 725 335 L 650 350 L 605 315 Z" />
+                </g>
+                <g id="mapTunnelArcs"></g>
+                <g transform="translate(560, 185)">
+                  <circle r="9" fill="#f59e0b" fill-opacity="0.2" />
+                  <circle r="4.5" fill="#f59e0b" stroke="#0f172a" stroke-width="1.5" />
+                  <text y="16" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono" font-weight="600">YOU (IN)</text>
+                </g>
+                <g id="mapServerNodes"></g>
+              </svg>
+
+              <div class="absolute bottom-2.5 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                <div class="bg-slate-900/90 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-300">
+                  Route: <span id="mapRouteLabel" class="text-emerald-400 font-semibold">Jaipur (IN) ➔ Direct ISP</span>
+                </div>
+                <div class="bg-slate-900/90 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-300">
+                  Cipher: <span id="mapCipherLabel" class="text-indigo-300">ChaCha20-Poly1305</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">ISP Real IP</span>
+                  <span id="realIpValue" class="text-sm font-mono font-semibold text-slate-300">103.21.142.88</span>
+                  <span id="realIpStateBadge" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-medium">Visible</span>
+                </div>
+                <span class="text-xs text-slate-400">🇮🇳 Jaipur</span>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Virtual Tunnel IP</span>
+                  <span id="virtualIpValue" class="text-sm font-mono font-semibold text-emerald-400">185.220.101.42</span>
+                  <span id="virtualIpStateBadge" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">Standby</span>
+                </div>
+                <button id="btnCopyIp" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+                  Copy IP
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telemetry Stats & Traffic Graph -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-5 grid grid-cols-2 gap-3">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400">Download Speed</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="mt-2">
+              <span id="statDownSpeed" class="text-2xl font-mono font-bold text-white">0.0</span>
+              <span class="text-xs font-mono text-slate-400">Mbps</span>
+            </div>
+            <p id="statTotalDown" class="text-[11px] font-mono text-slate-400 mt-1">Total: 0.0 MB</p>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400">Upload Speed</span>
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+            </div>
+            <div class="mt-2">
+              <span id="statUpSpeed" class="text-2xl font-mono font-bold text-white">0.0</span>
+              <span class="text-xs font-mono text-slate-400">Mbps</span>
+            </div>
+            <p id="statTotalUp" class="text-[11px] font-mono text-slate-400 mt-1">Total: 0.0 MB</p>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400">Trackers Blocked</span>
+              <span class="text-xs font-mono text-emerald-400">NetShield</span>
+            </div>
+            <div class="mt-2">
+              <span id="statAdsBlocked" class="text-2xl font-mono font-bold text-emerald-400">0</span>
+              <span class="text-xs text-slate-400">requests</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">DNS sinkhole filter</p>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-400">Tunnel MTU / Port</span>
+              <span id="statPortNumber" class="text-xs font-mono text-indigo-300">UDP 51820</span>
+            </div>
+            <div class="mt-2">
+              <span id="statMtuValue" class="text-2xl font-mono font-bold text-white">1420</span>
+              <span class="text-xs font-mono text-slate-400">bytes</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Zero packet loss</p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white">Encrypted Tunnel Throughput</h3>
+              <p class="text-xs text-slate-400">Real-time simulated packet stream (Download vs Upload)</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnSimulateBurst" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition">
+                ⚡ Simulate Stream Burst
+              </button>
+            </div>
+          </div>
+          <div class="relative h-36 w-full bg-slate-950 rounded-xl border border-slate-800/80 p-2 overflow-hidden">
+            <canvas id="trafficCanvas" class="w-full h-full block"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SERVERS -->
+    <section id="tab-servers" class="hidden space-y-5">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-white">Black X Relay Network</h2>
+            <p class="text-xs text-slate-400">Select any location to immediately reroute your tunnel</p>
+          </div>
+          <button id="btnPingAllServers" type="button" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>Refresh Latency</span>
+          </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-3">
+          <div class="relative flex-1">
+            <input id="serverSearchInput" type="text" placeholder="Search country, city, or specialty..." class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none" />
+            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+            <button type="button" data-filter="all" class="server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500 text-slate-950 font-semibold">All Nodes</button>
+            <button type="button" data-filter="favorites" class="server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">★ Favorites</button>
+            <button type="button" data-filter="Streaming" class="server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Streaming</button>
+            <button type="button" data-filter="P2P" class="server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">P2P</button>
+            <button type="button" data-filter="Privacy" class="server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Privacy</button>
+          </div>
+        </div>
+
+        <div id="serverListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SECURITY & SPLIT TUNNELING -->
+    <section id="tab-security" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-5">
+          <div>
+            <h2 class="text-base font-bold text-white">Tunnel Protocol &amp; Encryption</h2>
+            <p class="text-xs text-slate-400">Choose encapsulation and encryption standards</p>
+          </div>
+
+          <div id="protocolOptionsList" class="space-y-2.5">
+            <button type="button" data-protocol="WireGuard" class="protocol-option-btn w-full text-left p-3.5 rounded-xl bg-slate-950 border-2 border-emerald-500 flex items-center justify-between transition">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white">WireGuard®</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Fastest</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">ChaCha20-Poly1305 • UDP Port 51820</p>
+              </div>
+              <span class="protocol-radio w-4 h-4 rounded-full border-2 border-emerald-400 bg-emerald-400"></span>
+            </button>
+
+            <button type="button" data-protocol="OpenVPN-UDP" class="protocol-option-btn w-full text-left p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-between transition">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white">OpenVPN (UDP)</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Balanced</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">AES-256-GCM + SHA512 • UDP Port 1194</p>
+              </div>
+              <span class="protocol-radio w-4 h-4 rounded-full border-2 border-slate-600"></span>
+            </button>
+
+            <button type="button" data-protocol="OpenVPN-TCP" class="protocol-option-btn w-full text-left p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-between transition">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white">OpenVPN (TCP / Stealth 443)</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Firewall Bypass</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">AES-256-GCM • TCP Port 443</p>
+              </div>
+              <span class="protocol-radio w-4 h-4 rounded-full border-2 border-slate-600"></span>
+            </button>
+
+            <button type="button" data-protocol="IKEv2" class="protocol-option-btn w-full text-left p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-between transition">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white">IKEv2 / IPSec</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Mobile Roaming</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">AES-256-CBC + MOBIKE • UDP Port 500</p>
+              </div>
+              <span class="protocol-radio w-4 h-4 rounded-full border-2 border-slate-600"></span>
+            </button>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 space-y-3">
+            <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400">Security Features</h3>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-semibold text-white">System Kill Switch</p>
+                  <button id="btnTestKillSwitch" type="button" class="text-[11px] px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition">
+                    Test Drop
+                  </button>
+                </div>
+                <p class="text-xs text-slate-400">Block packets if the tunnel unexpectedly disconnects</p>
+              </div>
+              <button id="toggleKillSwitch" type="button" role="switch" aria-checked="true" class="w-11 h-6 rounded-full bg-emerald-500 p-0.5 transition flex items-center justify-end">
+                <span class="w-5 h-5 rounded-full bg-slate-950 shadow"></span>
+              </button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-white">NetShield DNS Blocker</p>
+                <p class="text-xs text-slate-400">Filter known ad domains and telemetry trackers</p>
+              </div>
+              <button id="toggleNetShield" type="button" role="switch" aria-checked="true" class="w-11 h-6 rounded-full bg-emerald-500 p-0.5 transition flex items-center justify-end">
+                <span class="w-5 h-5 rounded-full bg-slate-950 shadow"></span>
+              </button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-white">Multi-Hop (Double Tunnel via Zurich)</p>
+                <p class="text-xs text-slate-400">Route through an extra Swiss privacy core node</p>
+              </div>
+              <button id="toggleMultiHop" type="button" role="switch" aria-checked="false" class="w-11 h-6 rounded-full bg-slate-700 p-0.5 transition flex items-center justify-start">
+                <span class="w-5 h-5 rounded-full bg-white shadow"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-bold text-white">Split Tunneling Routing</h2>
+                <p class="text-xs text-slate-400">Choose apps that bypass the tunnel</p>
+              </div>
+              <span id="splitSummaryBadge" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-emerald-400">4 Protected / 2 Direct</span>
+            </div>
+            <div id="splitAppsList" class="space-y-2.5 pt-2"></div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-200 flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span><strong>Tip:</strong> Direct ISP ensures local network and domestic portals remain accessible without regional locks.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: LEAK TEST & LOGS -->
+    <section id="tab-diagnostics" class="hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-white">Privacy &amp; Leak Auditor</h2>
+              <button id="btnRunLeakAudit" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition">
+                Run Audit Scan
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Verify whether your browser leaks DNS, IPv6, or WebRTC headers</p>
+            <div id="leakAuditResults" class="mt-4 space-y-2.5"></div>
+          </div>
+          <div id="leakOverallVerdict" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs"></div>
+        </div>
+
+        <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-base font-bold text-white">Live Tunnel Daemon Console</h2>
+              <p class="text-xs text-slate-400">Real-time cryptographic handshake &amp; routing events</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnCopyLogs" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+                Copy Logs
+              </button>
+              <button id="btnClearLogs" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition">
+                Clear
+              </button>
+            </div>
+          </div>
+          <div id="logConsoleBox" class="h-80 bg-slate-950 rounded-xl border border-slate-800 p-3.5 font-mono text-xs overflow-y-auto space-y-1.5"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-800/60 py-5 text-center text-xs text-slate-500">
+    <p>© 2026 Black X Panel • Automated Gmail OTP Verification Monitor</p>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-4 right-4 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 bg-slate-900 border border-slate-700 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
+    <span id="toastDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <script>
+    (function () {
+      const SERVERS = [
+        { id: 'de-fra', country: 'Germany', city: 'Frankfurt #14', flag: '🇩🇪', ip: '185.220.101.42', basePing: 38, load: 24, category: 'Privacy', x: 410, y: 105, fav: true },
+        { id: 'sg-sin', country: 'Singapore', city: 'Singapore #08', flag: '🇸🇬', ip: '146.70.118.94', basePing: 22, load: 31, category: 'P2P', x: 605, y: 222, fav: true },
+        { id: 'in-bom', country: 'India', city: 'Mumbai Virtual #03', flag: '🇮🇳', ip: '49.36.192.114', basePing: 11, load: 19, category: 'Streaming', x: 552, y: 198, fav: false },
+        { id: 'ch-zrh', country: 'Switzerland', city: 'Zurich Core #01', flag: '🇨🇭', ip: '179.43.144.19', basePing: 44, load: 15, category: 'Privacy', x: 402, y: 118, fav: true },
+        { id: 'uk-lon', country: 'United Kingdom', city: 'London Docklands #21', flag: '🇬🇧', ip: '212.102.63.88', basePing: 49, load: 42, category: 'Streaming', x: 372, y: 98, fav: false },
+        { id: 'us-nyc', country: 'United States', city: 'New York #52', flag: '🇺🇸', ip: '198.54.132.77', basePing: 94, load: 53, category: 'Streaming', x: 195, y: 125, fav: false },
+        { id: 'us-sfo', country: 'United States', city: 'San Francisco #19', flag: '🇺🇸', ip: '173.245.58.201', basePing: 128, load: 37, category: 'P2P', x: 98, y: 138, fav: false },
+        { id: 'jp-tyo', country: 'Japan', city: 'Tokyo Shibuya #11', flag: '🇯🇵', ip: '138.199.45.160', basePing: 58, load: 29, category: 'Streaming', x: 690, y: 135, fav: false },
+        { id: 'nl-ams', country: 'Netherlands', city: 'Amsterdam #33', flag: '🇳🇱', ip: '89.187.169.12', basePing: 41, load: 34, category: 'P2P', x: 392, y: 96, fav: false },
+        { id: 'au-syd', country: 'Australia', city: 'Sydney #06', flag: '🇦🇺', ip: '103.107.198.55', basePing: 89, load: 21, category: 'Streaming', x: 695, y: 325, fav: false }
+      ];
+
+      const PROTOCOLS = {
+        'WireGuard': { cipher: 'ChaCha20-Poly1305', port: 'UDP 51820', mtu: 1420 },
+        'OpenVPN-UDP': { cipher: 'AES-256-GCM', port: 'UDP 1194', mtu: 1500 },
+        'OpenVPN-TCP': { cipher: 'AES-256-GCM', port: 'TCP 443', mtu: 1480 },
+        'IKEv2': { cipher: 'AES-256-CBC', port: 'UDP 500', mtu: 1400 }
+      };
+
+      const SPLIT_APPS = [
+        { id: 'app-browser', name: 'Chromium Web Browser', desc: 'Secure mail & session handling', icon: '🌐', routed: true },
+        { id: 'app-torrent', name: 'BitPulse P2P Client', desc: 'High-bandwidth file transfers', icon: '⚡', routed: true },
+        { id: 'app-chat', name: 'Encrypted Messenger', desc: 'Voice & text alerts', icon: '💬', routed: true },
+        { id: 'app-game', name: 'Game Launcher Overlay', desc: 'Low-latency connections', icon: '🎮', routed: true },
+        { id: 'app-bank', name: 'NetBanking Portal', desc: 'Direct ISP bypass', icon: '🏦', routed: false },
+        { id: 'app-lan', name: 'Local LAN Printer & NAS', desc: 'Direct 192.168.1.x subnet access', icon: '🖨️', routed: false }
+      ];
+
+      const state = {
+        status: 'disconnected',
+        killSwitchTripped: false,
+        selectedServerId: 'de-fra',
+        activeTab: 'dashboard',
+        serverFilter: 'all',
+        serverSearch: '',
+        protocol: 'WireGuard',
+        killSwitchEnabled: true,
+        netShieldEnabled: true,
+        multiHopEnabled: false,
+        sessionSeconds: 0,
+        downSpeed: 0,
+        upSpeed: 0,
+        totalDownMB: 0,
+        totalUpMB: 0,
+        adsBlocked: 0,
+        burstTicks: 0,
+        downHistory: new Array(40).fill(0),
+        upHistory: new Array(40).fill(0),
+        logs: []
+      };
+
+      let connectTimeoutIds = [];
+      let telemetryIntervalId = null;
+      let toastTimerId = null;
+
+      function addLog(message, type) {
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+        state.logs.unshift({ time: timeStr, message: message, type: type || 'info' });
+        if (state.logs.length > 80) state.logs.pop();
+        renderLogs();
+      }
+
+      function showToast(msg, colorClass) {
+        const toast = document.getElementById('toastNotification');
+        const dot = document.getElementById('toastDot');
+        const text = document.getElementById('toastMessage');
+        text.textContent = msg;
+        dot.className = 'w-2 h-2 rounded-full ' + (colorClass || 'bg-emerald-400');
+        toast.classList.remove('opacity-0', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        if (toastTimerId) clearTimeout(toastTimerId);
+        toastTimerId = setTimeout(function () {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2600);
+      }
+
+      function getSelectedServer() {
+        return SERVERS.find(function (s) { return s.id === state.selectedServerId; }) || SERVERS[0];
+      }
+
+      function clearConnectTimeouts() {
+        connectTimeoutIds.forEach(function (id) { clearTimeout(id); });
+        connectTimeoutIds = [];
+      }
+
+      function toggleConnection() {
+        if (state.status === 'connected' || state.status === 'connecting') {
+          disconnectVpn('Black X Panel: Daemon closed manually.');
+        } else {
+          startConnectionSequence();
+        }
+      }
+
+      function startConnectionSequence() {
+        clearConnectTimeouts();
+        state.killSwitchTripped = false;
+        state.status = 'connecting';
+        const srv = getSelectedServer();
+        const proto = PROTOCOLS[state.protocol];
+
+        addLog('Black X Panel: Establishing ' + state.protocol + ' tunnel to ' + srv.city + ' (' + srv.ip + ')...', 'handshake');
+        updateDashboardUI();
+
+        const stepEl = document.getElementById('handshakeStepText');
+        stepEl.textContent = '1/3 Resolving peer endpoint & ephemeral keys...';
+
+        connectTimeoutIds.push(setTimeout(function () {
+          stepEl.textContent = '2/3 Verifying ' + proto.cipher + ' cryptographic handshake...';
+          addLog('Exchanged ephemeral public keys via ' + proto.port + ' (' + proto.cipher + ')', 'handshake');
+        }, 450));
+
+        connectTimeoutIds.push(setTimeout(function () {
+          stepEl.textContent = '3/3 Assigning virtual tunnel interface utun4...';
+          addLog('Assigned virtual IP ' + srv.ip + '/32 and DNS sinkhole 10.8.0.1', 'handshake');
+        }, 900));
+
+        connectTimeoutIds.push(setTimeout(function () {
+          state.status = 'connected';
+          state.sessionSeconds = 0;
+          addLog('TUNNEL ESTABLISHED: Traffic routed securely via ' + srv.city + ', ' + srv.country, 'success');
+          showToast('Connected to ' + srv.city + ' (' + srv.country + ')', 'bg-emerald-400');
+          updateDashboardUI();
+          renderServerList();
+          renderLeakAudit();
+        }, 1350));
+      }
+
+      function disconnectVpn(reason) {
+        clearConnectTimeouts();
+        state.status = 'disconnected';
+        state.downSpeed = 0;
+        state.upSpeed = 0;
+        addLog(reason || 'Daemon disconnected. Direct ISP restored.', 'warn');
+        showToast('Panel Disconnected', 'bg-rose-400');
+        updateDashboardUI();
+        renderServerList();
+        renderLeakAudit();
+      }
+
+      function selectServer(serverId, autoConnect) {
+        state.selectedServerId = serverId;
+        const srv = getSelectedServer();
+        addLog('Selected node: ' + srv.city + ' (' + srv.country + ')', 'info');
+        if (autoConnect || state.status === 'connected') {
+          startConnectionSequence();
+        } else {
+          updateDashboardUI();
+          renderServerList();
+          showToast('Node set to ' + srv.city, 'bg-indigo-400');
+        }
+      }
+
+      function updateDashboardUI() {
+        const srv = getSelectedServer();
+        const proto = PROTOCOLS[state.protocol];
+
+        const ksBanner = document.getElementById('killSwitchAlert');
+        if (state.killSwitchTripped) ksBanner.classList.remove('hidden');
+        else ksBanner.classList.add('hidden');
+
+        const headerDot = document.getElementById('headerStatusDot');
+        const headerText = document.getElementById('headerStatusText');
+        const mainBadge = document.getElementById('mainStatusBadge');
+        const mainDot = document.getElementById('mainStatusDot');
+        const mainLabel = document.getElementById('mainStatusLabel');
+        const ambientGlow = document.getElementById('ambientGlow');
+        const pulseRing = document.getElementById('powerPulseRing');
+        const powerBtn = document.getElementById('btnConnectToggle');
+        const powerIcon = document.getElementById('powerIcon');
+        const powerSubtext = document.getElementById('powerBtnSubtext');
+        const stepText = document.getElementById('handshakeStepText');
+
+        if (state.status === 'connected') {
+          headerDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+          headerText.textContent = 'Protected • ' + srv.country;
+          mainBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+          mainDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+          mainLabel.textContent = 'CONNECTED';
+          ambientGlow.className = 'pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-emerald-500/15 blur-3xl transition-colors duration-700';
+          pulseRing.classList.remove('hidden');
+          powerBtn.className = 'relative w-36 h-36 rounded-full bg-gradient-to-b from-emerald-950/90 to-slate-900 border-4 border-emerald-500 shadow-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group focus:outline-none';
+          powerIcon.className = 'w-12 h-12 text-emerald-400 group-hover:scale-105 transition-transform duration-300';
+          powerSubtext.textContent = 'Connected';
+          stepText.textContent = 'Encrypted tunnel active • Zero leaks detected';
+        } else if (state.status === 'connecting') {
+          headerDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
+          headerText.textContent = 'Handshaking...';
+          mainBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+          mainDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+          mainLabel.textContent = 'CONNECTING...';
+          ambientGlow.className = 'pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-amber-500/15 blur-3xl transition-colors duration-700';
+          pulseRing.classList.remove('hidden');
+          powerBtn.className = 'relative w-36 h-36 rounded-full bg-gradient-to-b from-amber-950/60 to-slate-900 border-4 border-amber-400 shadow-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group focus:outline-none';
+          powerIcon.className = 'w-12 h-12 text-amber-300 animate-spin';
+          powerSubtext.textContent = 'Cancel';
+        } else {
+          headerDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+          headerText.textContent = state.killSwitchTripped ? 'Kill Switch Locked' : 'Unprotected';
+          mainBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30';
+          mainDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          mainLabel.textContent = state.killSwitchTripped ? 'TRAFFIC BLOCKED' : 'DISCONNECTED';
+          ambientGlow.className = 'pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-rose-500/10 blur-3xl transition-colors duration-700';
+          pulseRing.classList.add('hidden');
+          powerBtn.className = 'relative w-36 h-36 rounded-full bg-gradient-to-b from-slate-800 to-slate-900 border-4 border-slate-700 hover:border-slate-500 shadow-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group focus:outline-none';
+          powerIcon.className = 'w-12 h-12 text-rose-400 group-hover:scale-105 transition-transform duration-300';
+          powerSubtext.textContent = 'Tap to Connect';
+          stepText.textContent = state.killSwitchTripped ? 'Kill Switch active: Reconnect to restore internet' : 'Ready to establish encrypted tunnel';
+        }
+
+        document.getElementById('currentServerFlag').textContent = srv.flag;
+        document.getElementById('currentServerCity').textContent = srv.city;
+        document.getElementById('currentServerPing').textContent = srv.basePing + ' ms';
+        document.getElementById('currentServerCountry').textContent = srv.country + ' • ' + srv.category + ' Node';
+
+        document.getElementById('protocolQuickBadge').textContent = state.protocol;
+        document.getElementById('mapCipherLabel').textContent = proto.cipher;
+        document.getElementById('statPortNumber').textContent = proto.port;
+        document.getElementById('statMtuValue').textContent = proto.mtu;
+
+        const mhTag = document.getElementById('doubleVpnMapTag');
+        if (state.multiHopEnabled) mhTag.classList.remove('hidden');
+        else mhTag.classList.add('hidden');
+
+        const realBadge = document.getElementById('realIpStateBadge');
+        const virtIp = document.getElementById('virtualIpValue');
+        const virtBadge = document.getElementById('virtualIpStateBadge');
+        virtIp.textContent = srv.ip;
+
+        if (state.status === 'connected') {
+          realBadge.textContent = 'Masked';
+          realBadge.className = 'ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium';
+          virtBadge.textContent = 'Active Tunnel';
+          virtBadge.className = 'ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium';
+        } else {
+          realBadge.textContent = 'Exposed';
+          realBadge.className = 'ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-medium';
+          virtBadge.textContent = 'Standby';
+          virtBadge.className = 'ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium';
+        }
+
+        const routeLabel = document.getElementById('mapRouteLabel');
+        if (state.status === 'connected') {
+          if (state.multiHopEnabled && srv.id !== 'ch-zrh') {
+            routeLabel.textContent = 'Jaipur (IN) ➔ Zurich Core (CH) ➔ ' + srv.city;
+          } else {
+            routeLabel.textContent = 'Jaipur (IN) ➔ ' + srv.city + ' (' + srv.ip + ')';
+          }
+          routeLabel.className = 'text-emerald-400 font-semibold';
+        } else {
+          routeLabel.textContent = 'Jaipur (IN) ➔ Direct ISP';
+          routeLabel.className = 'text-rose-400 font-semibold';
+        }
+
+        renderWorldMapNodes();
+      }
+
+      function renderWorldMapNodes() {
+        const nodesGroup = document.getElementById('mapServerNodes');
+        const arcsGroup = document.getElementById('mapTunnelArcs');
+        const selected = getSelectedServer();
+        const originX = 560, originY = 185;
+
+        let arcsHtml = '';
+        if (state.status === 'connected' || state.status === 'connecting') {
+          const strokeColor = state.status === 'connected' ? '#10b981' : '#f59e0b';
+          if (state.multiHopEnabled && selected.id !== 'ch-zrh') {
+            const zrh = SERVERS.find(function (s) { return s.id === 'ch-zrh'; });
+            const midX1 = (originX + zrh.x) / 2;
+            const midY1 = Math.min(originY, zrh.y) - 45;
+            const midX2 = (zrh.x + selected.x) / 2;
+            const midY2 = Math.min(zrh.y, selected.y) - 35;
+            arcsHtml += '<path d="M ' + originX + ' ' + originY + ' Q ' + midX1 + ' ' + midY1 + ' ' + zrh.x + ' ' + zrh.y + '" fill="none" stroke="#a855f7" stroke-width="2.2" class="tunnel-line" />';
+            arcsHtml += '<path d="M ' + zrh.x + ' ' + zrh.y + ' Q ' + midX2 + ' ' + midY2 + ' ' + selected.x + ' ' + selected.y + '" fill="none" stroke="' + strokeColor + '" stroke-width="2.5" class="tunnel-line" />';
+          } else {
+            const midX = (originX + selected.x) / 2;
+            const midY = Math.min(originY, selected.y) - 55;
+            arcsHtml += '<path d="M ' + originX + ' ' + originY + ' Q ' + midX + ' ' + midY + ' ' + selected.x + ' ' + selected.y + '" fill="none" stroke="' + strokeColor + '" stroke-width="2.5" class="tunnel-line" />';
+          }
+        }
+        arcsGroup.innerHTML = arcsHtml;
+
+        let nodesHtml = '';
+        SERVERS.forEach(function (srv) {
+          const isSelected = srv.id === state.selectedServerId;
+          const isRelay = state.multiHopEnabled && srv.id === 'ch-zrh' && selected.id !== 'ch-zrh';
+          const fill = isSelected
+            ? (state.status === 'connected' ? '#10b981' : '#38bdf8')
+            : (isRelay ? '#a855f7' : '#64748b');
+          const radius = isSelected ? 6 : 4.2;
+
+          nodesHtml += '<g class="map-node cursor-pointer" data-server-id="' + srv.id + '" transform="translate(' + srv.x + ',' + srv.y + ')">';
+          if (isSelected) {
+            nodesHtml += '<circle r="14" fill="url(#nodeGlow)" />';
+          }
+          nodesHtml += '<circle r="' + radius + '" fill="' + fill + '" stroke="#0f172a" stroke-width="1.5" />';
+          if (isSelected || isRelay) {
+            nodesHtml += '<text y="-10" text-anchor="middle" fill="#f8fafc" font-size="9.5" font-family="Inter" font-weight="700">' + srv.country + '</text>';
+          }
+          nodesHtml += '</g>';
+        });
+        nodesGroup.innerHTML = nodesHtml;
+      }
+
+      function renderServerList() {
+        const container = document.getElementById('serverListContainer');
+        const q = state.serverSearch.trim().toLowerCase();
+
+        const filtered = SERVERS.filter(function (s) {
+          if (state.serverFilter === 'favorites' && !s.fav) return false;
+          if (state.serverFilter !== 'all' && state.serverFilter !== 'favorites' && s.category !== state.serverFilter) return false;
+          if (q && !(s.country.toLowerCase().includes(q) || s.city.toLowerCase().includes(q) || s.category.toLowerCase().includes(q))) {
+            return false;
+          }
+          return true;
+        });
+
+        document.getElementById('serverCountBadge').textContent = String(filtered.length);
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div class="col-span-full p-8 text-center text-slate-400 text-sm bg-slate-950 rounded-xl border border-slate-800">No servers match your filter criteria.</div>';
+          return;
+        }
+
+        container.innerHTML = filtered.map(function (srv) {
+          const isCurrent = srv.id === state.selectedServerId;
+          const isConnectedHere = isCurrent && state.status === 'connected';
+          const pingColor = srv.basePing < 45 ? 'text-emerald-400' : (srv.basePing < 90 ? 'text-amber-400' : 'text-rose-400');
+
+          return (
+            '<div class="p-3.5 rounded-xl bg-slate-950 border ' + (isCurrent ? 'border-emerald-500/70' : 'border-slate-800') + ' flex items-center justify-between gap-3 transition">' +
+              '<div class="flex items-center gap-3 min-w-0">' +
+                '<button type="button" data-fav-id="' + srv.id + '" class="text-base ' + (srv.fav ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400') + ' transition" title="Toggle Favorite">★</button>' +
+                '<span class="text-2xl">' + srv.flag + '</span>' +
+                '<div class="min-w-0">' +
+                  '<div class="flex items-center gap-2">' +
+                    '<p class="text-sm font-bold text-white truncate">' + srv.city + '</p>' +
+                    '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">' + srv.category + '</span>' +
+                  </div>' +
+                  '<p class="text-xs text-slate-400 truncate">' + srv.country + ' • IP: <span class="font-mono">' + srv.ip + '</span> • Load: ' + srv.load + '%</p>' +
+                '</div>' +
+              '</div>' +
+              '<div class="flex items-center gap-2.5 shrink-0">' +
+                '<span class="text-xs font-mono font-semibold ' + pingColor + '">' + srv.basePing + ' ms</span>' +
+                '<button type="button" data-connect-server="' + srv.id + '" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ' +
+                  (isConnectedHere
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 border border-slate-700') + '">' +
+                  (isConnectedHere ? 'Connected' : (isCurrent ? 'Connect' : 'Switch')) +
+                '</button>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function renderSplitApps() {
+        const container = document.getElementById('splitAppsList');
+        let routedCount = 0;
+        SPLIT_APPS.forEach(function (a) { if (a.routed) routedCount++; });
+        const directCount = SPLIT_APPS.length - routedCount;
+        document.getElementById('splitSummaryBadge').textContent = routedCount + ' Protected / ' + directCount + ' Direct';
+
+        container.innerHTML = SPLIT_APPS.map(function (app) {
+          return (
+            '<div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3">' +
+              '<div class="flex items-center gap-3 min-w-0">' +
+                '<span class="text-xl">' + app.icon + '</span>' +
+                '<div class="min-w-0">' +
+                  '<p class="text-sm font-semibold text-white truncate">' + app.name + '</p>' +
+                  '<p class="text-xs text-slate-400 truncate">' + app.desc + '</p>' +
+                '</div>' +
+              '</div>' +
+              '<button type="button" data-split-id="' + app.id + '" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition ' +
+                (app.routed
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  : 'bg-slate-800 text-slate-300 border border-slate-700') + '">' +
+                (app.routed ? '🔒 Routed' : '🌐 Direct ISP') +
+              '</button>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function renderLeakAudit() {
+        const container = document.getElementById('leakAuditResults');
+        const verdict = document.getElementById('leakOverallVerdict');
+        const srv = getSelectedServer();
+        const isProtected = state.status === 'connected';
+
+        const checks = [
+          {
+            label: 'Public IPv4 Address',
+            value: isProtected ? srv.ip + ' (' + srv.country + ')' : '103.21.142.88 (Jaipur, India)',
+            ok: isProtected
+          },
+          {
+            label: 'DNS Resolver Check',
+            value: isProtected ? '10.8.0.1 (Black X Isolated DNS)' : 'ISP Default Recursive DNS',
+            ok: isProtected
+          },
+          {
+            label: 'WebRTC STUN Candidate Leak',
+            value: isProtected ? 'Blocked / Local headers stripped' : 'Local & ISP IP visible in browser headers',
+            ok: isProtected
+          },
+          {
+            label: 'IPv6 Tunnel Leak Protection',
+            value: isProtected ? 'IPv6 Sinkholed' : 'Unfiltered Dual-Stack ISP Routing',
+            ok: isProtected
+          }
+        ];
+
+        container.innerHTML = checks.map(function (c) {
+          return (
+            '<div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">' +
+              '<div>' +
+                '<p class="text-xs font-medium text-slate-400">' + c.label + '</p>' +
+                '<p class="text-xs sm:text-sm font-mono font-semibold text-white mt-0.5">' + c.value + '</p>' +
+              '</div>' +
+              '<span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold ' +
+                (c.ok ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30') + '">' +
+                (c.ok ? 'SECURE' : 'EXPOSED') +
+              '</span>' +
+            '</div>'
+          );
+        }).join('');
+
+        if (isProtected) {
+          verdict.className = 'p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200';
+          verdict.innerHTML = '<strong>Audit Passed:</strong> Virtual address masked behind <strong>' + srv.city + '</strong> via <strong>' + state.protocol + '</strong>.';
+        } else {
+          verdict.className = 'p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200';
+          verdict.innerHTML = '<strong>Standby:</strong> Connect the Black X Panel daemon to route packets through encrypted nodes.';
+        }
+      }
+
+      function renderLogs() {
+        const box = document.getElementById('logConsoleBox');
+        box.innerHTML = state.logs.map(function (item) {
+          let color = 'text-slate-300';
+          if (item.type === 'success') color = 'text-emerald-400';
+          else if (item.type === 'handshake') color = 'text-indigo-300';
+          else if (item.type === 'warn') color = 'text-amber-300';
+          else if (item.type === 'error') color = 'text-rose-400';
+          return '<div><span class="text-slate-500">[' + item.time + ']</span> <span class="' + color + '">' + item.message + '</span></div>';
+        }).join('');
+      }
+
+      function formatSeconds(sec) {
+        const hrs = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return hrs + ':' + mins + ':' + s;
+      }
+
+      function drawTrafficChart() {
+        const canvas = document.getElementById('trafficCanvas');
+        if (!canvas) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          canvas.width = rect.width - 16;
+          canvas.height = rect.height - 16;
+        }
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 3; i++) {
+          const y = (h / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        const maxVal = 120;
+        const len = state.downHistory.length;
+        const stepX = w / (len - 1);
+
+        function drawSeries(data, stroke, fillRgba) {
+          ctx.beginPath();
+          for (let i = 0; i < len; i++) {
+            const x = i * stepX;
+            const y = h - Math.min(h - 6, (data[i] / maxVal) * (h - 10)) - 2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.lineTo(w, h);
+          ctx.lineTo(0, h);
+          ctx.closePath();
+          ctx.fillStyle = fillRgba;
+          ctx.fill();
+        }
+
+        drawSeries(state.downHistory, '#10b981', 'rgba(16, 185, 129, 0.16)');
+        drawSeries(state.upHistory, '#818cf8', 'rgba(129, 140, 248, 0.14)');
+      }
+
+      function startTelemetryLoop() {
+        if (telemetryIntervalId) clearInterval(telemetryIntervalId);
+        telemetryIntervalId = setInterval(function () {
+          if (state.status === 'connected') {
+            state.sessionSeconds++;
+            const isBurst = state.burstTicks > 0;
+            if (state.burstTicks > 0) state.burstTicks--;
+
+            const baseDown = isBurst ? 78 + Math.random() * 34 : 18 + Math.random() * 22;
+            const baseUp = isBurst ? 24 + Math.random() * 14 : 4.5 + Math.random() * 8;
+
+            state.downSpeed = baseDown;
+            state.upSpeed = baseUp;
+            state.totalDownMB += baseDown / 8;
+            state.totalUpMB += baseUp / 8;
+
+            if (state.netShieldEnabled && Math.random() > 0.45) {
+              state.adsBlocked += Math.floor(1 + Math.random() * 3);
+            }
+          } else {
+            state.downSpeed = 0;
+            state.upSpeed = 0;
+          }
+
+          state.downHistory.push(state.downSpeed);
+          state.downHistory.shift();
+          state.upHistory.push(state.upSpeed);
+          state.upHistory.shift();
+
+          document.getElementById('sessionTimer').textContent = formatSeconds(state.sessionSeconds);
+          document.getElementById('statDownSpeed').textContent = state.downSpeed.toFixed(1);
+          document.getElementById('statUpSpeed').textContent = state.upSpeed.toFixed(1);
+          document.getElementById('statTotalDown').textContent = 'Total: ' + state.totalDownMB.toFixed(1) + ' MB';
+          document.getElementById('statTotalUp').textContent = 'Total: ' + state.totalUpMB.toFixed(1) + ' MB';
+          document.getElementById('statAdsBlocked').textContent = String(state.adsBlocked);
+
+          drawTrafficChart();
+        }, 1000);
+      }
+
+      function switchTab(tabId) {
+        state.activeTab = tabId;
+        ['dashboard', 'servers', 'security', 'diagnostics'].forEach(function (id) {
+          const sec = document.getElementById('tab-' + id);
+          if (id === tabId) sec.classList.remove('hidden');
+          else sec.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.nav-tab-btn').forEach(function (btn) {
+          if (btn.getAttribute('data-tab') === tabId) {
+            btn.className = 'nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 bg-slate-800 text-white shadow';
+          } else {
+            btn.className = 'nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+          }
+        });
+
+        if (tabId === 'dashboard') {
+          setTimeout(drawTrafficChart, 40);
+        } else if (tabId === 'diagnostics') {
+          renderLeakAudit();
+        }
+      }
+
+      function copyTextToClipboard(text, label) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast(label + ' copied to clipboard!', 'bg-emerald-400');
+          }).catch(function () {
+            fallbackCopy(text, label);
+          });
+        } else {
+          fallbackCopy(text, label);
+        }
+      }
+
+      function fallbackCopy(text, label) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast(label + ' copied to clipboard!', 'bg-emerald-400');
+        } catch (err) {
+          showToast('Copy failed', 'bg-rose-400');
+        }
+        document.body.removeChild(ta);
+      }
+
+      function initEvents() {
+        document.querySelectorAll('.nav-tab-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            switchTab(btn.getAttribute('data-tab'));
+          });
+        });
+
+        document.getElementById('btnConnectToggle').addEventListener('click', toggleConnection);
+
+        document.getElementById('btnChangeServerQuick').addEventListener('click', function () {
+          switchTab('servers');
+        });
+
+        document.getElementById('btnFastestServer').addEventListener('click', function () {
+          let best = SERVERS[0];
+          SERVERS.forEach(function (s) {
+            if (s.basePing < best.basePing) best = s;
+          });
+          selectServer(best.id, true);
+        });
+
+        document.getElementById('btnRandomIdentity').addEventListener('click', function () {
+          const srv = getSelectedServer();
+          const octets = srv.ip.split('.');
+          octets[3] = String(Math.floor(10 + Math.random() * 235));
+          srv.ip = octets.join('.');
+          addLog('Rotated exit IP on ' + srv.city + ' to ' + srv.ip, 'handshake');
+          updateDashboardUI();
+          renderServerList();
+          renderLeakAudit();
+          showToast('New Virtual IP: ' + srv.ip, 'bg-indigo-400');
+        });
+
+        document.getElementById('btnCopyIp').addEventListener('click', function () {
+          const srv = getSelectedServer();
+          copyTextToClipboard(srv.ip, 'Virtual IP ' + srv.ip);
+        });
+
+        document.getElementById('btnSimulateBurst').addEventListener('click', function () {
+          if (state.status !== 'connected') startConnectionSequence();
+          state.burstTicks = 8;
+          addLog('Simulated high-throughput burst (~95 Mbps)', 'info');
+          showToast('Simulating traffic burst!', 'bg-indigo-400');
+        });
+
+        document.getElementById('vpnWorldMap').addEventListener('click', function (e) {
+          const node = e.target.closest('.map-node');
+          if (!node) return;
+          const serverId = node.getAttribute('data-server-id');
+          if (serverId) selectServer(serverId, state.status === 'connected');
+        });
+
+        document.getElementById('serverSearchInput').addEventListener('input', function (e) {
+          state.serverSearch = e.target.value;
+          renderServerList();
+        });
+
+        document.querySelectorAll('.server-filter-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.serverFilter = btn.getAttribute('data-filter');
+            document.querySelectorAll('.server-filter-btn').forEach(function (b) {
+              if (b.getAttribute('data-filter') === state.serverFilter) {
+                b.className = 'server-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950';
+              } else {
+                b.className = 'server-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950 text-slate-400 border border-slate-800 hover:text-white';
+              }
+            });
+            renderServerList();
+          });
+        });
+
+        document.getElementById('btnPingAllServers').addEventListener('click', function () {
+          SERVERS.forEach(function (s) {
+            const jitter = Math.floor(Math.random() * 9) - 4;
+            s.basePing = Math.max(8, s.basePing + jitter);
+            s.load = Math.min(92, Math.max(10, s.load + (Math.floor(Math.random() * 11) - 5)));
+          });
+          addLog('Latency benchmarks updated.', 'info');
+          updateDashboardUI();
+          renderServerList();
+          showToast('Server latencies updated!', 'bg-emerald-400');
+        });
+
+        document.getElementById('serverListContainer').addEventListener('click', function (e) {
+          const favBtn = e.target.closest('[data-fav-id]');
+          if (favBtn) {
+            const id = favBtn.getAttribute('data-fav-id');
+            const srv = SERVERS.find(function (s) { return s.id === id; });
+            if (srv) {
+              srv.fav = !srv.fav;
+              renderServerList();
+            }
+            return;
+          }
+          const connBtn = e.target.closest('[data-connect-server]');
+          if (connBtn) {
+            const id = connBtn.getAttribute('data-connect-server');
+            selectServer(id, true);
+            switchTab('dashboard');
+          }
+        });
+
+        document.querySelectorAll('.protocol-option-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const protoName = btn.getAttribute('data-protocol');
+            state.protocol = protoName;
+            document.querySelectorAll('.protocol-option-btn').forEach(function (b) {
+              const isMatch = b.getAttribute('data-protocol') === protoName;
+              b.className = 'protocol-option-btn w-full text-left p-3.5 rounded-xl bg-slate-950 ' +
+                (isMatch ? 'border-2 border-emerald-500' : 'border border-slate-800 hover:border-slate-700') +
+                ' flex items-center justify-between transition';
+              const radio = b.querySelector('.protocol-radio');
+              if (radio) {
+                radio.className = isMatch
+                  ? 'protocol-radio w-4 h-4 rounded-full border-2 border-emerald-400 bg-emerald-400'
+                  : 'protocol-radio w-4 h-4 rounded-full border-2 border-slate-600';
+              }
+            });
+            addLog('Switched protocol to ' + protoName + ' (' + PROTOCOLS[protoName].cipher + ')', 'handshake');
+            updateDashboardUI();
+            renderLeakAudit();
+            showToast('Protocol set to ' + protoName, 'bg-emerald-400');
+          });
+        });
+
+        function updateToggleVisual(btnId, active) {
+          const btn = document.getElementById(btnId);
+          btn.setAttribute('aria-checked', String(active));
+          if (active) {
+            btn.className = 'w-11 h-6 rounded-full bg-emerald-500 p-0.5 transition flex items-center justify-end';
+            btn.innerHTML = '<span class="w-5 h-5 rounded-full bg-slate-950 shadow"></span>';
+          } else {
+            btn.className = 'w-11 h-6 rounded-full bg-slate-700 p-0.5 transition flex items-center justify-start';
+            btn.innerHTML = '<span class="w-5 h-5 rounded-full bg-white shadow"></span>';
+          }
+        }
+
+        document.getElementById('toggleKillSwitch').addEventListener('click', function () {
+          state.killSwitchEnabled = !state.killSwitchEnabled;
+          updateToggleVisual('toggleKillSwitch', state.killSwitchEnabled);
+          addLog('Kill Switch ' + (state.killSwitchEnabled ? 'ENABLED' : 'DISABLED'), 'info');
+          showToast('Kill Switch ' + (state.killSwitchEnabled ? 'Enabled' : 'Disabled'), 'bg-emerald-400');
+        });
+
+        document.getElementById('toggleNetShield').addEventListener('click', function () {
+          state.netShieldEnabled = !state.netShieldEnabled;
+          updateToggleVisual('toggleNetShield', state.netShieldEnabled);
+          addLog('NetShield DNS Blocker ' + (state.netShieldEnabled ? 'ENABLED' : 'DISABLED'), 'info');
+          showToast('NetShield ' + (state.netShieldEnabled ? 'Enabled' : 'Disabled'), 'bg-emerald-400');
+        });
+
+        document.getElementById('toggleMultiHop').addEventListener('click', function () {
+          state.multiHopEnabled = !state.multiHopEnabled;
+          updateToggleVisual('toggleMultiHop', state.multiHopEnabled);
+          addLog('Multi-Hop Tunnel ' + (state.multiHopEnabled ? 'ENABLED' : 'DISABLED'), 'handshake');
+          updateDashboardUI();
+          showToast('Multi-Hop ' + (state.multiHopEnabled ? 'Active' : 'Off'), 'bg-purple-400');
+        });
+
+        document.getElementById('btnTestKillSwitch').addEventListener('click', function () {
+          clearConnectTimeouts();
+          state.status = 'disconnected';
+          state.killSwitchTripped = true;
+          state.killSwitchEnabled = true;
+          updateToggleVisual('toggleKillSwitch', true);
+          addLog('CRITICAL: Kill switch tripped, traffic halted.', 'error');
+          updateDashboardUI();
+          switchTab('dashboard');
+          showToast('Kill Switch engaged!', 'bg-rose-500');
+        });
+
+        document.getElementById('btnReconnectKillSwitch').addEventListener('click', function () {
+          startConnectionSequence();
+        });
+
+        document.getElementById('splitAppsList').addEventListener('click', function (e) {
+          const btn = e.target.closest('[data-split-id]');
+          if (!btn) return;
+          const id = btn.getAttribute('data-split-id');
+          const app = SPLIT_APPS.find(function (a) { return a.id === id; });
+          if (app) {
+            app.routed = !app.routed;
+            addLog('Split: ' + app.name + ' -> ' + (app.routed ? 'Routed' : 'Direct ISP'), 'info');
+            renderSplitApps();
+          }
+        });
+
+        document.getElementById('btnRunLeakAudit').addEventListener('click', function () {
+          addLog('Executed leak audit scan.', 'info');
+          renderLeakAudit();
+          showToast('Leak audit completed!', 'bg-emerald-400');
+        });
+
+        document.getElementById('btnCopyLogs').addEventListener('click', function () {
+          const text = state.logs.map(function (l) { return '[' + l.time + '] ' + l.message; }).join('\n');
+          copyTextToClipboard(text, 'Daemon logs');
+        });
+
+        document.getElementById('btnClearLogs').addEventListener('click', function () {
+          state.logs = [];
+          addLog('Console logs cleared.', 'info');
+        });
+
+        window.addEventListener('resize', drawTrafficChart);
+      }
+
+      window.addEventListener('load', function () {
+        addLog('Black X Panel daemon initialized.', 'info');
+        addLog('Loaded 10 global relay nodes.', 'info');
+        initEvents();
+        updateDashboardUI();
+        renderServerList();
+        renderSplitApps();
+        renderLeakAudit();
+        drawTrafficChart();
+        startTelemetryLoop();
+      });
+    })();
+  </script>
 </body>
 </html>
